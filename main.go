@@ -37,12 +37,13 @@ func main() {
 			}
 			break
 		}
-		root := doc.Content[0]
 
+		root := doc.Content[0]
 		scan(root)
 
 		out := os.Stdout
 		enc := yaml.NewEncoder(out)
+		enc.SetIndent(2)
 		fmt.Fprintln(out, "---")
 		err = enc.Encode(root)
 		checkerr(err)
