@@ -37,5 +37,5 @@ or
 ## ideas of improvents
 
 * preserve original indents
-* detect or define is `---` preambula needed in output
-* tests
+* detect or enable/disable of `---` preambula in output
+* add tests
