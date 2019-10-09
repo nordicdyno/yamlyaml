@@ -51,19 +51,17 @@ func main() {
 }
 
 func scan(n *yaml.Node) {
-
 	switch n.Kind {
-	case yaml.AliasNode:
-		return
 	case yaml.ScalarNode:
 		tryToUnYAML(n)
-		return
+	case yaml.MappingNode:
+		scanMap(n)
 	}
+}
 
+func scanMap(n *yaml.Node) {
 	for i, item := range n.Content {
 		if n.Kind == yaml.MappingNode && (i%2 == 0) {
-			// skip keys for maps
-			// fmt.Printf("KEY:%v\n", n.Value)
 			continue
 		}
 		scan(item)
@@ -73,11 +71,15 @@ func scan(n *yaml.Node) {
 func tryToUnYAML(n *yaml.Node) {
 	var item yaml.Node
 	if err := yaml.Unmarshal([]byte(n.Value), &item); err != nil {
+		// fmt.Printf("unmarshal failed with error: %v\n", err.Error())
 		return
+	}
+
+	if item.Content[0].Kind == yaml.MappingNode {
+		scanMap(item.Content[0])
 	}
 	*n = *item.Content[0]
 }
-
 
 func checkerr(err error, a ...interface{}) {
 	if err == nil {
