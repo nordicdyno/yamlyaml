@@ -18,7 +18,7 @@ func main() {
 		input = os.Stdin
 	case 1:
 		yamlFile, err := os.Open(flag.Arg(0))
-		checkerr(err)
+		checkErr(err)
 		defer yamlFile.Close()
 		input = yamlFile
 	default:
@@ -26,14 +26,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	dec := yaml.NewDecoder(input)
+	err := transform(input, os.Stdout)
+	checkErr(err)
+}
+
+func transform(r io.Reader, w io.Writer) error {
+	dec := yaml.NewDecoder(r)
 
 	for n := 1; ; n++ {
+		// read yaml object (could be more than one in stream)
 		var doc yaml.Node
 		err := dec.Decode(&doc)
 		if err != nil {
 			if err != io.EOF {
-				checkerr(err, fmt.Sprintf("DECODE ERROR: (type=%T)", err))
+				return err
 			}
 			break
 		}
@@ -41,13 +47,16 @@ func main() {
 		root := doc.Content[0]
 		scan(root)
 
-		out := os.Stdout
-		enc := yaml.NewEncoder(out)
+		// out := os.Stdout
+		enc := yaml.NewEncoder(w)
 		enc.SetIndent(2)
-		fmt.Fprintln(out, "---")
+		fmt.Fprintln(w, "---")
 		err = enc.Encode(root)
-		checkerr(err)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func scan(n *yaml.Node) {
@@ -74,6 +83,10 @@ func tryToUnYAML(n *yaml.Node) {
 		// fmt.Printf("unmarshal failed with error: %v\n", err.Error())
 		return
 	}
+	// fmt.Printf("item: %#v\n", item)
+	if len(item.Content) == 0 {
+		return
+	}
 
 	if item.Content[0].Kind == yaml.MappingNode {
 		scanMap(item.Content[0])
@@ -81,7 +94,7 @@ func tryToUnYAML(n *yaml.Node) {
 	*n = *item.Content[0]
 }
 
-func checkerr(err error, a ...interface{}) {
+func checkErr(err error, a ...interface{}) {
 	if err == nil {
 		return
 	}
