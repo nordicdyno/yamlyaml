@@ -23,7 +23,7 @@ to this:
 
 ## install
 
-    go install github.com/nordicdyno/yamlyaml
+    go install github.com/nordicdyno/yamlyaml@master
 
 ## usage
 
